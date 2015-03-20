@@ -1,0 +1,100 @@
+<script type='text/javascript' src='http://code.jquery.com/jquery-latest.js'></script>
+		<script type='text/javascript'>
+			var delay = 15;
+			function getRandomInt (min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+			function randomRGB(exclude) { 
+				var rgb = 'rgb('+ (Math.floor(Math.random() * 256)) + ','	+ (Math.floor(Math.random() * 256)) + ',' 	+ (Math.floor(Math.random() * 256)) + ')'; 
+				if(rgb != exclude) {
+					return rgb;
+				} else {
+					return randomRGB(exclude);
+				}
+			}
+			function randomFont(exclude) {
+				var fonts = [ 'Arial', 'Courier New' ];
+				var font_i = getRandomInt(0, fonts.length-1);
+				var font = fonts[font_i];
+				if(font == exclude) {
+					return randomFont(exclude);
+				} else {
+					return font;
+				}
+			}	
+			function slitherFill( el, index, color, font ) {
+				var spans = el.getElementsByTagName('span');
+				if(index < spans.length) {
+					spans[index].style.color = color;
+					spans[index].style.fontFamily = font;
+					color = randomRGB(color);
+					font = randomFont(font);
+					setTimeout( slitherFill, delay, el, (index+1), color, font );
+				} else {
+					setTimeout( slitherEmpty, delay, el, 0, 'blue', 'Times New Roman' );
+				}
+			}
+			function slitherEmpty( el, index, color, font ) {
+				var spans = el.getElementsByTagName('span');
+				var elId = el.id;
+				if( index > spans.length - 1 ) {
+					$(el).bind('mouseover', {elId : elId}, function( event ) {
+							$("#"+event.data.elId).unbind();
+							var el = document.getElementById(event.data.elId);
+							var color = randomRGB(); var font = randomFont();
+							slitherFill(el, 0, color, font);
+						}
+					);
+					return;
+				} else {
+					for(var j = spans.length-1; j >= 1; j-- ) {
+						spans[j].style.fontFamily = spans[j-1].style.fontFamily;
+						spans[j].style.color = spans[j-1].style.color;
+					}
+					spans[index].style.fontFamily = font;
+					spans[index].style.color = color;
+					index += 1;
+					setTimeout(slitherEmpty, delay, el, index, color, font);
+				}
+			}
+			function slither( elId ) {
+				$("#"+elId).unbind();
+				var el = document.getElementById( elId );
+				var color = randomRGB();
+				var font = randomFont();
+				slitherFill(el, 0, color, font);
+			}
+			function insertSpans ( elId ) {
+				var newText = "";
+				var el = document.getElementById( elId );
+				if(el) {
+					var innerHTML = el.innerHTML;
+					var words = innerHTML.split(" ");
+					for(var i = 0; i < words.length; i++) {
+						var word = $.trim(words[i]);
+						for( var j = 0; j < word.length; j++ ) {
+							newText += "<span id='slither_"+i+"_"+j+"' style='text-decoration: none; color: blue; font-size: 12pt; font-family: Times New Roman;'>" + word[j] + "</span>";
+						}	
+						newText += " ";
+					}
+					$('#'+elId).html( newText );
+				}
+			}
+			$(document).ready( function () {
+				function initFunky() {
+					var i = 0;
+					$('a').each(function() {
+						$(this).html( "<div id='slither_"+i+"' class='slither'>"+$(this).html()+"</a>" );
+						i++;
+					});
+					$('.slither').each(function() {
+						insertSpans($(this).attr('id'));
+						$(this).mouseover(function(){
+							slither($(this).attr('id'));
+						});
+					});
+				}
+				initFunky();
+			});
+		</script>
+</head>
+
+<a href="#"> Change this text </a>
